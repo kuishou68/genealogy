@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/home/home"
+  ],
+  "subpackages": [],
+  "usingComponents": {
+  },
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#f6f6f6",
+    "backgroundColor": "#f6f6f6",
+    "navigationBarTitleText": "TDesign",
+    "navigationBarTextStyle": "black"
+  },
+  "sitemapLocation": "sitemap.json"
+}
