@@ -25,9 +25,8 @@ Page({
 
   onLoad() {
     // console.log("data_---->", data_);
-    this.recursiveProcess(demoData.root, demoData.root.data.text);
+    let treeData = this.recursiveProcess(demoData.root, demoData.root.data.text);
     console.log("demoData--->", demoData);
-    console.log("this.data.treeData--->", this.data.treeData);
     // 注册自定义树，节点等
     F6.registerGraph('TreeGraph', TreeGraph);
 
@@ -38,25 +37,24 @@ Page({
       width: windowWidth,
       height: windowHeight,
       pixelRatio,
+      treeData
     });
   },
 
   /**
    * 递归处理结果
    */
-  recursiveProcess(obj, id){
-    // this.data.treeData.id = obj.data.text;
-    // this.data.treeData.children = obj.children.forEach((cItem) => {
-    //     if(cItem.children && cItem.children.length > 0){
-    //         this.recursiveProcess(cItem);
-    //     }
-    // })
-    return obj.children.map((item) => {
-        return {
-            id: item.text,
-            children: item.children
-        }
-    })
+  recursiveProcess(json, id){
+    let obj = {};
+    obj.id = id;
+    obj.note = json.data.note || '';
+    if(json.children && json.children.length > 0){
+      obj.children = json.children.map((item) => {
+          return item.children && item.children.length > 0 ? this.recursiveProcess(item, item.data.text) : {id: item.data.text, note: item.data.note, children: []}
+      });
+    }
+    // console.log("obj---->", obj)
+    return obj; 
   },
   /**
    * 初始化canvas回调，缓存获得的context
@@ -82,7 +80,8 @@ Page({
   },
 
   updateChart() {
-    const { width, height, pixelRatio } = this.data;
+    const { width, height, pixelRatio, treeData } = this.data;
+    console.log("treeData--->", treeData);
 
     // 创建F6实例
     this.graph = new F6.TreeGraph({
@@ -115,11 +114,14 @@ Page({
         ],
       },
       defaultEdge: {
-        type: 'cubic-vertical',
+        // type: 'cubic-vertical',
+        type: 'cubic-horizontal',
       },
       layout: {
-        type: 'compactBox',
-        direction: 'TB',
+        // type: 'compactBox',
+        // direction: 'LR',
+        type: 'mindmap',
+        direction: 'H',
         getId: function getId(d) {
           return d.id;
         },
@@ -129,13 +131,14 @@ Page({
         getWidth: function getWidth() {
           return 16;
         },
-        getVGap: function getVGap() {
-          return 80;
+        getVGap: function getVGap() { // 每个节点的垂直间隙
+          return 10; // 40;
         },
-        getHGap: function getHGap() {
-          return 20;
+        getHGap: function getHGap() { // 每个节点的水平间隙
+          return 50; 
         },
       },
+      radial: true
     });
 
     this.graph.node((node) => {
@@ -157,10 +160,15 @@ Page({
         },
       };
     });
-
-    this.graph.data(data_);
+    this.graph.data(treeData);
     this.graph.render();
     this.graph.fitView();
+    this.graph.on('node:tap', evt => {
+      // 一些操作
+      const item = evt.item; // 被操作的节点 item
+      const target = evt.target; // 被操作的具体图形
+      console.log("evt--->", evt);
+    })
   },
 
   onUnload() {
